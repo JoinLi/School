@@ -3,22 +3,24 @@ package ly.school;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.LoaderManager.LoaderCallbacks;
+import android.content.CursorLoader;
+import android.content.Intent;
+import android.content.Loader;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.app.LoaderManager.LoaderCallbacks;
-
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.AsyncTask;
-
-import android.os.Build;
-import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
@@ -36,13 +38,18 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.zhy.http.okhttp.OkHttpUtils;
-import com.zhy.http.okhttp.callback.BitmapCallback;
 import com.zhy.http.okhttp.callback.Callback;
 import com.zhy.http.okhttp.callback.StringCallback;
 import com.zhy.http.okhttp.cookie.CookieJarImpl;
 import com.zhy.http.okhttp.cookie.store.CookieStore;
 import com.zhy.http.okhttp.cookie.store.PersistentCookieStore;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,11 +58,9 @@ import java.util.Map;
 import ly.school.bean.SchoolApi;
 import ly.school.util.LogUtil;
 import ly.school.util.NetManager;
-import ly.school.util.ToastUtil;
+import ly.school.util.StreamTools;
 import okhttp3.Call;
 import okhttp3.Cookie;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -83,12 +88,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     // UI references.
     private AutoCompleteTextView mTextid;
-    private EditText mPasswordView,ed_yzm;
+    private EditText mPasswordView, ed_yzm;
     private View mProgressView;
     private View mLoginFormView;
     private ImageView im_yzm;
-    private  Cookie cookie;
+    private Cookie cookie;
     private NetManager netManager;
+    private  Bitmap bm;
+    private  String value;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,14 +109,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     private void initData() {
-        String student_id=mTextid.getText().toString().trim();
-        String student_pass=mPasswordView.getText().toString().trim();
-        String student_yzm=ed_yzm.getText().toString().trim();
+        String student_id = mTextid.getText().toString().trim();
+        String student_pass = mPasswordView.getText().toString().trim();
+        String student_yzm = ed_yzm.getText().toString().trim();
         System.err.println(student_yzm);
 
 
 //        stringRequestWithPost(student_yzm);
     }
+
     /**
      * 登录
      */
@@ -157,10 +165,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 
     private void initView() {
-        netManager = NetManager.getNetManager(); //单例模式拿数据
+//        netManager = NetManager.getNetManager(); //单例模式拿数据
         mTextid = (AutoCompleteTextView) findViewById(R.id.text_id);
-        im_yzm= (ImageView) findViewById(R.id.im_yzm);
-        ed_yzm= (EditText) findViewById(R.id.ed_yzm);
+        im_yzm = (ImageView) findViewById(R.id.im_yzm);
+        ed_yzm = (EditText) findViewById(R.id.ed_yzm);
         im_yzm.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -176,11 +184,56 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        try{
-                            String result =  netManager.loginByPost(SchoolApi.SCHOOL_LOGIN_URL,ed_yzm.getText().toString().trim());
-                          String i=result;
-                           LogUtil.m(result);
-                        }catch(Exception e){
+                        try {
+                            String result = loginByPost(SchoolApi.SCHOOL_LOGIN_URL, ed_yzm.getText().toString().trim());
+
+                            LogUtil.LogShitou(result);
+                        } catch (Exception e) {
+                            LogUtil.m("result出错");
+//
+                        }
+                    }
+                }).start();
+            }
+        });
+        Button post_button = (Button) findViewById(R.id.get_button);
+        post_button.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            String result = loginByGet("http://222.222.32.17/xscj_gc.aspx?xh=1507140123&xm=赵天&gnmkdm=N121605");
+
+                             value = subString(result);
+
+                            LogUtil.LogShitou( value);
+                        } catch (Exception e) {
+                            LogUtil.m("result出错");
+//
+                        }
+                    }
+                }).start();
+            }
+        });
+        Button post_res_button = (Button) findViewById(R.id.post_res_button);
+        post_res_button.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            String result = loginByPostShuju("http://222.222.32.17/xscj_gc.aspx?xh=1507140123&xm=赵天&gnmkdm=N121605");
+                            if (result != null) {
+                                Intent intent = new Intent(LoginActivity.this, WebViewActivity.class);
+                                intent.putExtra("result", result);
+                                startActivity(intent);
+                            }
+
+                            LogUtil.LogShitou(result);
+                        } catch (Exception e) {
                             LogUtil.m("result出错");
 //
                         }
@@ -207,39 +260,282 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mProgressView = findViewById(R.id.login_progress);
 
     }
+
     private void getCode() {
+//        OkHttpUtils
+//                .get()
+//                .url(SchoolApi.SCHOOL_CODE_URL)
+//                .build()
+//                .execute(new BitmapCallback() {
+//                    @Override
+//                    public void onError(Call call, Exception e, int id) {
+//
+//                        LogUtil.m("验证码获取失败");
+//                    }
+//
+//                    @Override
+//                    public void onResponse(Bitmap response, int id) {
+//                        im_yzm.setImageBitmap(response);
+//
+//                    }
+//
+//
+//                });
         OkHttpUtils
                 .get()
                 .url(SchoolApi.SCHOOL_CODE_URL)
                 .build()
-                .execute(new BitmapCallback()
-                {
+                .execute(new Callback() {
+                    @Override
+                    public Object parseNetworkResponse(okhttp3.Response response, int id) throws Exception {
+
+                        try {
+                            InputStream is = response.body().byteStream();
+                            bm = BitmapFactory.decodeStream(is);
+                            String text = StreamTools.readInputStream(is);
+                            LogUtil.m(response.toString());
+
+
+                        } catch (Exception e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                        handler.sendEmptyMessage(1);
+
+                        return null;
+                    }
+
                     @Override
                     public void onError(Call call, Exception e, int id) {
-
                         LogUtil.m("验证码获取失败");
                     }
 
                     @Override
-                    public void onResponse(Bitmap response, int id) {
-                        im_yzm.setImageBitmap(response);
+                    public void onResponse(Object response, int id) {
+
                     }
-
-
                 });
+        try {
+            CookieJarImpl cookieJar = new CookieJarImpl(new PersistentCookieStore(getApplicationContext()));
+            CookieStore cookieStore1 = cookieJar.getCookieStore();
+            List<Cookie> cookies1 = cookieStore1.getCookies();
+            cookie = cookies1.get(0);
+            LogUtil.m("状态值：" + cookie.value());
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
-        CookieJarImpl cookieJar = new CookieJarImpl(new PersistentCookieStore(getApplicationContext()));
-        CookieStore cookieStore1= cookieJar.getCookieStore();
-        List<Cookie> cookies1=cookieStore1.getCookies();
-         cookie=cookies1.get(0);
-        LogUtil.m("状态值："+cookie.value());
+
     }
-    private void Logion(String url,String stu_id,String stu_pass,String stu_yzm) {
+    private Handler handler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case 1:
+                    im_yzm.setImageBitmap(bm);
+                default:
+                    break;
+            }
+        }
+
+    };
+
+    /**
+     * 截取参数
+     *
+     * @return
+     */
+    private String subString(String html) throws UnsupportedEncodingException {
+        int str_start = html.indexOf("dDwxMDE") ;
+        String html1=html.substring(str_start);
+//        String html2= URLEncoder.encode(html1, "GBK");
+        int str_end = html1.indexOf("=");
+        String myString = null;
+        if (str_start != -1 && str_end != -1) {
+            myString = html1.substring(0, str_end);
+
+            } else {
+                myString = html1;
+            }
+
+        return myString;
+    }
+//    /**
+//     * 从指定URL获取图片
+//     *
+//     * @param url
+//     * @return
+//     */
+//    private Bitmap getImageBitmap(String url) {
+//        Bitmap bitmap = null;
+//        try {
+//            URL imgUrl = new URL(url);
+//            HttpURLConnection conn = (HttpURLConnection) imgUrl.openConnection();
+//            conn.setDoInput(true);
+//            conn.connect();
+//            int code = conn.getResponseCode();
+//            if (code == 200) {
+//                // 请求成功
+//                InputStream is = conn.getInputStream();
+//                String text = StreamTools.readInputStream(is);
+//                LogUtil.m("请求参数：" +text);
+//                bitmap = BitmapFactory.decodeStream(is);
+//                is.close();
+//                return bitmap;
+//
+//            } else {
+//                return null;
+//            }
+//        } catch (MalformedURLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
+
+
+    public String loginByPost(String path, String yzm) {
+        // 提交数据到服务器
+        // 拼装路径
+        try {
+            URL url = new URL(path);
+            //利用HttpURLConnection对象从网络中获取网页数据
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            //设置连接超时
+            conn.setConnectTimeout(5000);
+            //设置cookie
+            conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
+            //设置提交方式
+            conn.setRequestMethod("POST");
+            // 准备数据
+            //String data = "username=" + URLEncoder.encode(username, "UTF-8")+ "&password=" + password;
+            String datas = "__VIEWSTATE=dDw3OTkxMjIwNTU7Oz5lckWjxbSRVWnm1fxMfCi4%2BWbxnA%3D%3D&TextBox1=1507140123&TextBox2=z123456&TextBox3=" + yzm + "&RadioButtonList1=%D1%A7%C9%FA&Button1=";
+            //协议头
+            conn.setRequestProperty("Content-Type",
+                    "application/x-www-form-urlencoded");
+            //conn.setRequestProperty("Content-Length", datas.length() + "");
+
+            // post实际上是浏览器把数据写给了服务器
+            conn.setDoOutput(true);//UrlConnection允许向外传数据
+            OutputStream os = conn.getOutputStream();
+            os.write(datas.getBytes());
+            int code = conn.getResponseCode();
+            if (code == 200) {
+                // 请求成功
+                InputStream is = conn.getInputStream();
+                String text = StreamTools.readInputStream(is);
+                return text;
+
+            } else {
+                return null;
+            }
+
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String loginByGet(String path) {
+        // 提交数据到服务器
+        // 拼装路径
+        try {
+            URL url = new URL(path);
+            //利用HttpURLConnection对象从网络中获取网页数据
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            //设置连接超时
+            conn.setConnectTimeout(5000);
+            //设置cookie
+            conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
+            //设置提交方式
+            conn.setRequestMethod("GET");
+            //协议头
+            conn.setRequestProperty("Content-Type",
+                    "application/x-www-form-urlencoded");
+            conn.setRequestProperty("Accept", "text/html, application/xhtml+xml, */*");
+            conn.setRequestProperty("Connection", "Keep-Alive");
+            conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
+            conn.setRequestProperty("Host", "222.222.32.17");
+            conn.setRequestProperty("Referer", "http://222.222.32.17/xs_main.aspx?xh=1507140123");
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
+
+            int code = conn.getResponseCode();
+            if (code == 200) {
+                // 请求成功
+                InputStream is = conn.getInputStream();
+                String text = StreamTools.readInputStream(is);
+                return text;
+
+            } else {
+                return null;
+            }
+
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String loginByPostShuju(String path) {
+        // 提交数据到服务器
+        // 拼装路径
+        try {
+            URL url = new URL(path);
+            //利用HttpURLConnection对象从网络中获取网页数据
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            //设置连接超时
+            conn.setConnectTimeout(5000);
+            //设置cookie
+            conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
+            //设置提交方式
+            conn.setRequestMethod("POST");
+            // 准备数据
+            //String data = "username=" + URLEncoder.encode(username, "UTF-8")+ "&password=" + password;
+            String datas = "__VIEWSTATE="+ URLEncoder.encode(value, "GBK")+SchoolApi.SCHOOL_RESULT_URL;
+            //协议头
+            conn.setRequestProperty("Content-Type",
+                    "application/x-www-form-urlencoded");
+            conn.setRequestProperty("Accept", "text/html, application/xhtml+xml, */*");
+            conn.setRequestProperty("Connection", "Keep-Alive");
+            conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
+            conn.setRequestProperty("Content-Length", datas.length() + "");
+            conn.setRequestProperty("Referer", "http://222.222.32.17/xscj_gc.aspx?xh=1507140123&xm=赵天&gnmkdm=N121605");
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
+            // post实际上是浏览器把数据写给了服务器
+            conn.setDoOutput(true);//UrlConnection允许向外传数据
+            OutputStream os = conn.getOutputStream();
+            os.write(datas.getBytes());
+            int code = conn.getResponseCode();
+            if (code == 200) {
+                // 请求成功
+                InputStream is = conn.getInputStream();
+                String text = StreamTools.readInputStream(is);
+                return text;
+
+            } else {
+                return null;
+            }
+
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void Logion(String url, String stu_id, String stu_pass, String stu_yzm) {
 
         OkHttpUtils
                 .post()
                 .url(url)
-                .addHeader("Cookie","ASP.NET_SessionId=" + cookie.value())
+                .addHeader("Cookie", "ASP.NET_SessionId=" + cookie.value())
                 .addParams("__VIEWSTATE", "dDw3OTkxMjIwNTU7Oz6bElNpJA3l%2BXqeptxfVrO1JPQhiw%3D%3D")
                 .addParams("TextBox1", "1305140314")
                 .addParams("TextBox2", "19941215")
@@ -265,7 +561,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     }
 
                 });
+
+
     }
+
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {
             return;
@@ -451,8 +750,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         mTextid.setAdapter(adapter);
     }
-
-
 
 
     private interface ProfileQuery {

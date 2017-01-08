@@ -31,10 +31,7 @@ public class MyApplication extends Application {
                 .build();
 
         OkHttpUtils.initClient(okHttpClient);
-//        CookieStore cookieStore1= cookieJar.getCookieStore();
-//        List<Cookie> cookies1=cookieStore1.getCookies();
-//        Cookie cookie1=cookies1.get(0);
-//        LogUtil.m("状态值："+cookie1);
+
     }
     public static RequestQueue getApplication() {
         return queues;
