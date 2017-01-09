@@ -1,4 +1,4 @@
-package ly.school;
+package ly.school.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
+import ly.school.R;
 import ly.school.util.HtmlUtil;
 
 /**

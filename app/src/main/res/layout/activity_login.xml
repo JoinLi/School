@@ -8,7 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="ly.school.LoginActivity">
+    tools:context=".activity.LoginActivity">
 
     <!-- Login progress -->
     <ProgressBar
@@ -86,7 +86,7 @@
             </android.support.design.widget.TextInputLayout>
 
             <Button
-                android:id="@+id/email_sign_in_button"
+                android:id="@+id/login_button"
                 style="?android:textAppearanceSmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -102,14 +102,7 @@
                 android:layout_marginTop="16dp"
                 android:text="get数据"
                 android:textStyle="bold" />
-            <Button
-                android:id="@+id/post_res_button"
-                style="?android:textAppearanceSmall"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="post数据"
-                android:textStyle="bold" />
+
 
         </LinearLayout>
     </ScrollView>

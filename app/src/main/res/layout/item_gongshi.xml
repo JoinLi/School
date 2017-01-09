@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/text_xn"
+        android:layout_width="75dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="2015-2016"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/text_xq"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="1"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/text_kcmc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="C语言程序设计（软件1）"
+        android:textSize="15dp" />
+
+
+    <TextView
+        android:id="@+id/text_xf"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="5.00"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/text_cj"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="94.00"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/text_xymc"
+        android:layout_width="78dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="招生就业指导中心"
+        android:textSize="15dp" />
+
+
+</LinearLayout>
