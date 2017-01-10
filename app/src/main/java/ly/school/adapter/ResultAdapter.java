@@ -15,11 +15,11 @@ import ly.school.util.LogUtil;
 /**
  * RecyclerView 适配器
  */
-public class GongshiAdapter1 extends RecyclerView.Adapter<GongshiAdapter1.ViewHolder> {
+public class ResultAdapter extends RecyclerView.Adapter<ResultAdapter.ViewHolder> {
 
     private Map<Integer, List<String>> mlistmore;
 
-    public GongshiAdapter1(Map<Integer, List<String>> mlistmore) {
+    public ResultAdapter(Map<Integer, List<String>> mlistmore) {
         this.mlistmore = mlistmore;
     }
 
@@ -47,7 +47,7 @@ public class GongshiAdapter1 extends RecyclerView.Adapter<GongshiAdapter1.ViewHo
         viewHolder.text_kcmc.setText(mlistmore.get(position).get(3).toString());
         viewHolder.text_xf.setText(mlistmore.get(position).get(6).toString());
         viewHolder.text_cj.setText(mlistmore.get(position).get(8).toString());
-        viewHolder.text_xymc.setText(mlistmore.get(position).get(12).toString());
+//        viewHolder.text_xymc.setText(mlistmore.get(position).get(12).toString());
 
 
     }
@@ -70,7 +70,7 @@ public class GongshiAdapter1 extends RecyclerView.Adapter<GongshiAdapter1.ViewHo
             text_kcmc = (TextView) view.findViewById(R.id.text_kcmc);
             text_xf = (TextView) view.findViewById(R.id.text_xf);
             text_cj = (TextView) view.findViewById(R.id.text_cj);
-            text_xymc = (TextView) view.findViewById(R.id.text_xymc);
+//            text_xymc = (TextView) view.findViewById(R.id.text_xymc);
 
 
         }

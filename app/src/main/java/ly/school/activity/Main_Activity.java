@@ -3,6 +3,7 @@ package ly.school.activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -22,15 +23,16 @@ import java.util.List;
 import java.util.Map;
 
 import ly.school.R;
-import ly.school.adapter.GongshiAdapter1;
+import ly.school.adapter.ResultAdapter;
 import ly.school.util.LogUtil;
 import ly.school.util.NetManager;
+import ly.school.util.ToastUtil;
 
 /**
  * @author Administrator
  */
 public class Main_Activity extends AppCompatActivity {
-    private GongshiAdapter1 mAdapter;
+    private ResultAdapter mAdapter;
     private Toolbar toolbar;
     private RecyclerView mRecyclerView;
     private List<String> list;
@@ -41,13 +43,15 @@ public class Main_Activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
         initView();
+//        Snackbar.make(getCurrentFocus(), "登录成功", Snackbar.LENGTH_LONG).show();
+        ToastUtil.showToast(Main_Activity.this,"登录成功");
 
     }
 
 
     private void initView() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("显示数据");
+        toolbar.setTitle("成绩查询");
         setSupportActionBar(toolbar);
         ActionBar mActionBar = getSupportActionBar();
         if (mActionBar != null) {
@@ -62,14 +66,13 @@ public class Main_Activity extends AppCompatActivity {
         //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
         mRecyclerView.setHasFixedSize(true);
         //创建并设置Adapter
-        mAdapter = new GongshiAdapter1(mlistmore);
+        mAdapter = new ResultAdapter(mlistmore);
         mRecyclerView.setAdapter(mAdapter);
 
         Button post_res_button = (Button) findViewById(R.id.post_res_button);
         post_res_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 initData();
             }
         });
@@ -81,7 +84,7 @@ public class Main_Activity extends AppCompatActivity {
             public void run() {
                 try {
                     NetManager netManager = NetManager.getNetManager(); //单例模式拿数据
-                    String result = netManager.loginByPostShuju("http://222.222.32.17/xscj_gc.aspx?xh=1507140123&xm=赵天&gnmkdm=N121605");
+                    String result = netManager.postResult();
                     if (result != null) {
 
                         int str_start = result.indexOf("divShow1");

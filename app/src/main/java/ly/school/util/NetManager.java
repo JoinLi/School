@@ -2,6 +2,8 @@ package ly.school.util;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.support.design.widget.Snackbar;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.zhy.http.okhttp.OkHttpUtils;
@@ -25,6 +27,7 @@ import okhttp3.Cookie;
 public class NetManager {
     private Cookie cookie;
     private String value;
+    private String name, zh_id;
     private static NetManager netManager = new NetManager();
 
     private NetManager() {
@@ -38,7 +41,7 @@ public class NetManager {
         return netManager;
     }
 
-    public void getCode(Context context, final ImageView imageView) {
+    public void getCode(Context context, final ImageView imageView, final View view) {
         OkHttpUtils
                 .get()
                 .url(SchoolApi.SCHOOL_CODE_URL)
@@ -48,6 +51,7 @@ public class NetManager {
                     public void onError(Call call, Exception e, int id) {
 
                         LogUtil.m("验证码获取失败");
+                        Snackbar.make(view, "验证码获取失败", Snackbar.LENGTH_LONG).show();
                     }
 
                     @Override
@@ -97,6 +101,10 @@ public class NetManager {
             CookieStore cookieStore1 = cookieJar.getCookieStore();
             List<Cookie> cookies1 = cookieStore1.getCookies();
             cookie = cookies1.get(0);
+            if (cookie == null) {
+                Snackbar.make(view, "验证码获取cookie失败", Snackbar.LENGTH_LONG).show();
+            }
+
             LogUtil.m("COOKIE值：" + cookie.value());
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -107,11 +115,11 @@ public class NetManager {
     }
 
 
-    public String loginByPost(String path, String yzm) {
+    public String loginByPost(String yzm, String zh, String mm) {
         // 提交数据到服务器
         // 拼装路径
         try {
-            URL url = new URL(path);
+            URL url = new URL(SchoolApi.SCHOOL_LOGIN_URL);
             //利用HttpURLConnection对象从网络中获取网页数据
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             //设置连接超时
@@ -122,7 +130,7 @@ public class NetManager {
             conn.setRequestMethod("POST");
             // 准备数据
             //String data = "username=" + URLEncoder.encode(username, "UTF-8")+ "&password=" + password;
-            String datas = "__VIEWSTATE=dDw3OTkxMjIwNTU7Oz5lckWjxbSRVWnm1fxMfCi4%2BWbxnA%3D%3D&TextBox1=1507140123&TextBox2=z123456&TextBox3=" + yzm + "&RadioButtonList1=%D1%A7%C9%FA&Button1=";
+            String datas = "__VIEWSTATE=dDw3OTkxMjIwNTU7Oz7wxyCFoif0MxyZLtieBzZqqZh2mQ%3D%3D&TextBox1=" + zh + "&TextBox2=" + mm + "&TextBox3=" + yzm + "&RadioButtonList1=%D1%A7%C9%FA&Button1=";
             //协议头
             conn.setRequestProperty("Content-Type",
                     "application/x-www-form-urlencoded");
@@ -137,7 +145,12 @@ public class NetManager {
                 // 请求成功
                 InputStream is = conn.getInputStream();
                 String text = StreamTools.readInputStream(is);
-                return text;
+                name = subName(text);
+                zh_id = zh;
+                if (name == null) {
+                    return null;
+                }
+                return name;
 
             } else {
                 return null;
@@ -150,11 +163,11 @@ public class NetManager {
         return null;
     }
 
-    public void loginByGet(String path) {
+    public void getValue() {
         // 提交数据到服务器
         // 拼装路径
         try {
-            URL url = new URL(path);
+            URL url = new URL("http://222.222.32.17/xscj_gc.aspx?xh="+zh_id+"&xm="+name+"&gnmkdm=N121605");
             //利用HttpURLConnection对象从网络中获取网页数据
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             //设置连接超时
@@ -170,7 +183,7 @@ public class NetManager {
             conn.setRequestProperty("Connection", "Keep-Alive");
             conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
             conn.setRequestProperty("Host", "222.222.32.17");
-            conn.setRequestProperty("Referer", "http://222.222.32.17/xs_main.aspx?xh=1507140123");
+            conn.setRequestProperty("Referer", "http://222.222.32.17/xs_main.aspx?xh=" + zh_id);
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
 
             int code = conn.getResponseCode();
@@ -185,17 +198,17 @@ public class NetManager {
             }
 
         } catch (Exception e) {
-            // TODO Auto-generated catch block
+           LogUtil.m("获取value出错");
             e.printStackTrace();
         }
 
     }
 
-    public String loginByPostShuju(String path) {
+    public String postResult() {
         // 提交数据到服务器
         // 拼装路径
         try {
-            URL url = new URL(path);
+            URL url = new URL("http://222.222.32.17/xscj_gc.aspx?xh="+zh_id+"&xm="+name+"&gnmkdm=N121605");
             //利用HttpURLConnection对象从网络中获取网页数据
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             //设置连接超时
@@ -214,7 +227,7 @@ public class NetManager {
             conn.setRequestProperty("Connection", "Keep-Alive");
             conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
             conn.setRequestProperty("Content-Length", datas.length() + "");
-            conn.setRequestProperty("Referer", "http://222.222.32.17/xscj_gc.aspx?xh=1507140123&xm=赵天&gnmkdm=N121605");
+            conn.setRequestProperty("Referer", "http://222.222.32.17/xscj_gc.aspx?xh=" + zh_id + "&xm=" + name + "&gnmkdm=N121605");
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
             // post实际上是浏览器把数据写给了服务器
             conn.setDoOutput(true);//UrlConnection允许向外传数据
@@ -239,7 +252,7 @@ public class NetManager {
     }
 
     /**
-     * 截取参数
+     * 截取value参数
      *
      * @return
      */
@@ -254,6 +267,25 @@ public class NetManager {
 
         } else {
             myString = html1;
+        }
+
+        return myString;
+    }
+
+    /**
+     * 截取name参数
+     *
+     * @return
+     */
+    private String subName(String html) throws UnsupportedEncodingException {
+        int str_start = html.indexOf("xhxm");
+        int str_end = html.indexOf("同学");
+        String myString = null;
+        if (str_start != -1 && str_end != -1) {
+            myString = html.substring(str_start + 6, str_end);
+
+        } else {
+            myString = null;
         }
 
         return myString;
