@@ -32,7 +32,7 @@
             style="?android:textAppearanceSmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="post数据"
+            android:text="点我试试"
             android:textStyle="bold" />
 
         <android.support.v7.widget.RecyclerView

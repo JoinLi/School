@@ -47,8 +47,6 @@ public class LoginActivity extends AppCompatActivity {
         mTextid = (AutoCompleteTextView) findViewById(R.id.text_id);
         ed_yzm = (EditText) findViewById(R.id.ed_yzm);
         mPasswordView = (EditText) findViewById(R.id.password);
-        final String student_id = mTextid.getText().toString().trim();
-        final String student_pass = mPasswordView.getText().toString().trim();
         im_yzm.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -65,7 +63,7 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         try {
-                            String result = netManager.loginByPost(ed_yzm.getText().toString().trim(), "1305140314", "19941215");
+                            String result = netManager.loginByPost(ed_yzm.getText().toString().trim(), mTextid.getText().toString().trim(), mPasswordView.getText().toString().trim());
                             netManager.getValue();
                             if (result != null) {
                                 progressDialog.dismiss();
@@ -79,6 +77,7 @@ public class LoginActivity extends AppCompatActivity {
                         } catch (Exception e) {
                             progressDialog.dismiss();
                             Snackbar.make(getCurrentFocus(), "登录失败", Snackbar.LENGTH_LONG).show();
+                            netManager.getCode(LoginActivity.this, im_yzm, getCurrentFocus());
                             LogUtil.m("登录出错");
 //
                         }
@@ -110,6 +109,7 @@ public class LoginActivity extends AppCompatActivity {
         msg.setText("正在加载中");
         progressDialog.show();
     }
+
 
 
 }
