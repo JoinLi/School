@@ -37,6 +37,7 @@ public class LoginActivity extends AppCompatActivity {
         // Set up the login form.
         initView();
         netManager.getCode(LoginActivity.this, im_yzm, getCurrentFocus());
+        netManager.getIndex();
 
     }
 
@@ -64,7 +65,7 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         try {
-                            String result = netManager.loginByPost(ed_yzm.getText().toString().trim(), "1507140123", "z123456");
+                            String result = netManager.loginByPost(ed_yzm.getText().toString().trim(), "1305140314", "19941215");
                             netManager.getValue();
                             if (result != null) {
                                 progressDialog.dismiss();
@@ -106,7 +107,7 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setCancelable(true);
         progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         TextView msg = (TextView) progressDialog.findViewById(R.id.id_tv_loadingmsg);
-        msg.setText("卖力加载中");
+        msg.setText("正在加载中");
         progressDialog.show();
     }
 

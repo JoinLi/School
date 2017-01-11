@@ -1,9 +1,9 @@
 package ly.school.activity;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -37,6 +38,7 @@ public class Main_Activity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private List<String> list;
     private Map<Integer, List<String>> mlistmore = new HashMap<Integer, List<String>>();
+    private Dialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +81,7 @@ public class Main_Activity extends AppCompatActivity {
     }
 
     private void initData() {
+        dialogShow();
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -108,6 +111,7 @@ public class Main_Activity extends AppCompatActivity {
 
                 } catch (Exception e) {
                     LogUtil.m("获取成绩出错");
+                    progressDialog.dismiss();
 //
                 }
             }
@@ -148,6 +152,7 @@ public class Main_Activity extends AppCompatActivity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case 1:
+                    progressDialog.dismiss();
                     mAdapter.notifyDataSetChanged();
                 default:
                     break;
@@ -163,5 +168,14 @@ public class Main_Activity extends AppCompatActivity {
             onBackPressed();
         }
         return super.onOptionsItemSelected(item);
+    }
+    private void dialogShow() {
+        progressDialog = new Dialog(Main_Activity.this, R.style.progress_dialog);
+        progressDialog.setContentView(R.layout.layout_dialog);
+        progressDialog.setCancelable(true);
+        progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        TextView msg = (TextView) progressDialog.findViewById(R.id.id_tv_loadingmsg);
+        msg.setText("正在加载中");
+        progressDialog.show();
     }
 }

@@ -8,6 +8,7 @@ import android.widget.ImageView;
 
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.BitmapCallback;
+import com.zhy.http.okhttp.callback.StringCallback;
 import com.zhy.http.okhttp.cookie.CookieJarImpl;
 import com.zhy.http.okhttp.cookie.store.CookieStore;
 import com.zhy.http.okhttp.cookie.store.PersistentCookieStore;
@@ -28,6 +29,7 @@ public class NetManager {
     private Cookie cookie;
     private String value;
     private String name, zh_id;
+    private String viewstate;
     private static NetManager netManager = new NetManager();
 
     private NetManager() {
@@ -114,7 +116,28 @@ public class NetManager {
 
     }
 
+    public void getIndex() {
+        OkHttpUtils
+                .get()
+                .url(SchoolApi.SCHOOL_URL)
+                .build()
+                .execute(new StringCallback() {
+                    @Override
+                    public void onError(Call call, Exception e, int id) {
 
+                    }
+
+                    @Override
+                    public void onResponse(String response, int id) {
+                        try {
+                            viewstate=substate(response);
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+    }
     public String loginByPost(String yzm, String zh, String mm) {
         // 提交数据到服务器
         // 拼装路径
@@ -130,7 +153,7 @@ public class NetManager {
             conn.setRequestMethod("POST");
             // 准备数据
             //String data = "username=" + URLEncoder.encode(username, "UTF-8")+ "&password=" + password;
-            String datas = "__VIEWSTATE=dDw3OTkxMjIwNTU7Oz7wxyCFoif0MxyZLtieBzZqqZh2mQ%3D%3D&TextBox1=" + zh + "&TextBox2=" + mm + "&TextBox3=" + yzm + "&RadioButtonList1=%D1%A7%C9%FA&Button1=";
+            String datas = "__VIEWSTATE=dDw3OTkxMjIwNTU7Oz7J7"+URLEncoder.encode(viewstate+"==", "GBK")+"&TextBox1=" + zh + "&TextBox2=" + mm + "&TextBox3=" + yzm + "&RadioButtonList1=%D1%A7%C9%FA&Button1=";
             //协议头
             conn.setRequestProperty("Content-Type",
                     "application/x-www-form-urlencoded");
@@ -283,6 +306,26 @@ public class NetManager {
         String myString = null;
         if (str_start != -1 && str_end != -1) {
             myString = html.substring(str_start + 6, str_end);
+
+        } else {
+            myString = null;
+        }
+
+        return myString;
+    }
+    /**
+     * 截取登录的ViewSTATE参数
+     *
+     * @return
+     */
+    private String substate(String html) throws UnsupportedEncodingException {
+        int str_start = html.indexOf("7J7");
+        String html1 = html.substring(str_start);
+        int str_end = html1.indexOf("==");
+        String myString = null;
+        if (str_start != -1 && str_end != -1) {
+            myString = html1.substring(3, str_end);
+            LogUtil.m(myString);
 
         } else {
             myString = null;
