@@ -13,6 +13,9 @@ import com.zhy.http.okhttp.cookie.CookieJarImpl;
 import com.zhy.http.okhttp.cookie.store.CookieStore;
 import com.zhy.http.okhttp.cookie.store.PersistentCookieStore;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -27,7 +30,7 @@ import okhttp3.Cookie;
 
 public class NetManager {
     private Cookie cookie;
-    private String value;
+    private String loginSuccessfulState;
     private String name, zh_id;
     private String viewstate;
     private static NetManager netManager = new NetManager();
@@ -43,6 +46,12 @@ public class NetManager {
         return netManager;
     }
 
+    /**
+     * 1 获取验证码以及cookie
+     * @param context
+     * @param imageView
+     * @param view
+     */
     public void getCode(Context context, final ImageView imageView, final View view) {
         OkHttpUtils
                 .get()
@@ -64,40 +73,6 @@ public class NetManager {
 
 
                 });
-//        OkHttpUtils
-//                .get()
-//                .url(SchoolApi.SCHOOL_CODE_URL)
-//                .build()
-//                .execute(new Callback() {
-//                    @Override
-//                    public Object parseNetworkResponse(okhttp3.Response response, int id) throws Exception {
-//
-//                        try {
-//                            InputStream is = response.body().byteStream();
-//                            bm = BitmapFactory.decodeStream(is);
-//                            String text = StreamTools.readInputStream(is);
-//                            LogUtil.m(response.toString());
-//
-//
-//                        } catch (Exception e) {
-//                            // TODO Auto-generated catch block
-//                            e.printStackTrace();
-//                        }
-//                        handler.sendEmptyMessage(1);
-//
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public void onError(Call call, Exception e, int id) {
-//                        LogUtil.m("验证码获取失败");
-//                    }
-//
-//                    @Override
-//                    public void onResponse(Object response, int id) {
-//
-//                    }
-//                });
         try {
             CookieJarImpl cookieJar = new CookieJarImpl(new PersistentCookieStore(context));
             CookieStore cookieStore1 = cookieJar.getCookieStore();
@@ -116,6 +91,9 @@ public class NetManager {
 
     }
 
+    /**
+     * 2 访问主页获取登录的ViewSTATE参数
+     */
     public void getIndex() {
         OkHttpUtils
                 .get()
@@ -129,15 +107,20 @@ public class NetManager {
 
                     @Override
                     public void onResponse(String response, int id) {
-                        try {
-                            viewstate=substate(response);
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();
-                        }
+                        viewstate = jsoupIndexXml(response);
+                        LogUtil.m("获取主页ViewSTATE值" + viewstate);
                     }
                 });
 
     }
+
+    /**
+     * 3 登录教务系统
+     * @param yzm 验证码
+     * @param zh  账号
+     * @param mm 密码
+     * @return
+     */
     public String loginByPost(String yzm, String zh, String mm) {
         // 提交数据到服务器
         // 拼装路径
@@ -153,7 +136,7 @@ public class NetManager {
             conn.setRequestMethod("POST");
             // 准备数据
             //String data = "username=" + URLEncoder.encode(username, "UTF-8")+ "&password=" + password;
-            String datas = "__VIEWSTATE=dDw3OTkxMjIwNTU7Oz7J7"+URLEncoder.encode(viewstate+"==", "GBK")+"&TextBox1=" + zh + "&TextBox2=" + mm + "&TextBox3=" + yzm + "&RadioButtonList1=%D1%A7%C9%FA&Button1=";
+            String datas = "__VIEWSTATE=" + URLEncoder.encode(viewstate, "GBK") + "&TextBox1=" + zh + "&TextBox2=" + mm + "&TextBox3=" + yzm + "&RadioButtonList1=%D1%A7%C9%FA&Button1=";
             //协议头
             conn.setRequestProperty("Content-Type",
                     "application/x-www-form-urlencoded");
@@ -186,11 +169,14 @@ public class NetManager {
         return null;
     }
 
-    public void getValue() {
+    /**
+     * 4 获取登录成功后的ViewSTATE参数
+     */
+    public void getLogionSuccessValue() {
         // 提交数据到服务器
         // 拼装路径
         try {
-            URL url = new URL("http://222.222.32.17/xscj_gc.aspx?xh="+zh_id+"&xm="+name+"&gnmkdm=N121605");
+            URL url = new URL(SchoolApi.SCHOOL_URL+"xscj_gc.aspx?xh=" + zh_id + "&xm=" + name + "&gnmkdm=N121605");
             //利用HttpURLConnection对象从网络中获取网页数据
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             //设置连接超时
@@ -214,24 +200,28 @@ public class NetManager {
                 // 请求成功
                 InputStream is = conn.getInputStream();
                 String text = StreamTools.readInputStream(is);
-                value = subString(text);
-                LogUtil.m(value);
+                loginSuccessfulState= LoginSuccessfulXml(text);
+                LogUtil.m("获取成功成功的STATE值"+loginSuccessfulState);
 
 
             }
 
         } catch (Exception e) {
-           LogUtil.m("获取value出错");
+            LogUtil.m("获取value出错");
             e.printStackTrace();
         }
 
     }
 
+    /**
+     * 5 查询学生成绩
+     * @return
+     */
     public String postResult() {
         // 提交数据到服务器
         // 拼装路径
         try {
-            URL url = new URL("http://222.222.32.17/xscj_gc.aspx?xh="+zh_id+"&xm="+name+"&gnmkdm=N121605");
+            URL url = new URL(SchoolApi.SCHOOL_URL+"xscj_gc.aspx?xh=" + zh_id + "&xm=" + name + "&gnmkdm=N121605");
             //利用HttpURLConnection对象从网络中获取网页数据
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             //设置连接超时
@@ -242,7 +232,7 @@ public class NetManager {
             conn.setRequestMethod("POST");
             // 准备数据
             //String data = "username=" + URLEncoder.encode(username, "UTF-8")+ "&password=" + password;
-            String datas = "__VIEWSTATE=" + URLEncoder.encode(value, "GBK") + SchoolApi.SCHOOL_RESULT_URL;
+            String datas = "__VIEWSTATE=" + URLEncoder.encode(loginSuccessfulState, "GBK") + SchoolApi.SCHOOL_RESULT_URL;
             //协议头
             conn.setRequestProperty("Content-Type",
                     "application/x-www-form-urlencoded");
@@ -275,24 +265,23 @@ public class NetManager {
     }
 
     /**
-     * 截取value参数
+     * 获取登录的ViewSTATE参数
      *
      * @return
      */
-    private String subString(String html) throws UnsupportedEncodingException {
-        int str_start = html.indexOf("dDwxMDE");
-        String html1 = html.substring(str_start);
-//        String html2= URLEncoder.encode(html1, "GBK");
-        int str_end = html1.indexOf("=");
-        String myString = null;
-        if (str_start != -1 && str_end != -1) {
-            myString = html1.substring(0, str_end);
-
-        } else {
-            myString = html1;
-        }
-
-        return myString;
+    private String jsoupIndexXml(String html) {
+        Document doc = Jsoup.parse(html);
+        String trs = doc.select("input[name=__VIEWSTATE]").val();
+        return trs;
+    }
+    /**
+     *  获取登录成功的ViewSTATE参数
+     * @param html
+     * @return
+     */
+    private String LoginSuccessfulXml(String html) {
+        String loginSuccessXml = jsoupIndexXml(html);
+        return loginSuccessXml;
     }
 
     /**
@@ -313,24 +302,7 @@ public class NetManager {
 
         return myString;
     }
-    /**
-     * 截取登录的ViewSTATE参数
-     *
-     * @return
-     */
-    private String substate(String html) throws UnsupportedEncodingException {
-        int str_start = html.indexOf("7J7");
-        String html1 = html.substring(str_start);
-        int str_end = html1.indexOf("==");
-        String myString = null;
-        if (str_start != -1 && str_end != -1) {
-            myString = html1.substring(3, str_end);
-            LogUtil.m(myString);
 
-        } else {
-            myString = null;
-        }
 
-        return myString;
-    }
+
 }

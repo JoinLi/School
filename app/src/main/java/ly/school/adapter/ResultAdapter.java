@@ -36,12 +36,6 @@ public class ResultAdapter extends RecyclerView.Adapter<ResultAdapter.ViewHolder
     //将数据与界面进行绑定的操作
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
-//        if (position < list.size() - 4) {
-//            viewHolder.mTextView.setGravity(Gravity.LEFT);
-//        } else {
-//            viewHolder.mTextView.setGravity(Gravity.RIGHT);
-//        }
-
         viewHolder.text_xn.setText(mlistmore.get(position).get(0).toString());
         viewHolder.text_xq.setText(mlistmore.get(position).get(1).toString());
         viewHolder.text_kcmc.setText(mlistmore.get(position).get(3).toString());

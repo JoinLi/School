@@ -64,7 +64,7 @@ public class LoginActivity extends AppCompatActivity {
                     public void run() {
                         try {
                             String result = netManager.loginByPost(ed_yzm.getText().toString().trim(), mTextid.getText().toString().trim(), mPasswordView.getText().toString().trim());
-                            netManager.getValue();
+                            netManager.getLogionSuccessValue();
                             if (result != null) {
                                 progressDialog.dismiss();
 
