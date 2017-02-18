@@ -89,22 +89,7 @@ public class Main_Activity extends AppCompatActivity {
                     NetManager netManager = NetManager.getNetManager(); //单例模式拿数据
                     String result = netManager.postResult();
                     if (result != null) {
-
-                        int str_start = result.indexOf("divShow1");
-                        String result1 = result.substring(str_start);
-                        int str_end = result1.indexOf("table width");
-                        String myString = null;
-                        if (str_start != -1 && str_end != -1) {
-                            myString = result1.substring(0, str_end);
-
-                        } else {
-                            myString = result1;
-                        }
-                        JsoupXml(myString);
-//
-//                                Intent intent = new Intent(LoginActivity.this, WebViewActivity.class);
-//                                intent.putExtra("result", myString);
-//                                startActivity(intent);
+                        JsoupXml(result);
 
                     }
 
@@ -118,10 +103,10 @@ public class Main_Activity extends AppCompatActivity {
         }).start();
 
     }
-
     private void JsoupXml(String bg) {
         Document doc = (Document) Jsoup.parse(bg);
-        Elements trs = doc.select("table").select("tr");
+//        Elements trs = doc.select("table").select("tr");
+        Elements trs = doc.getElementsByAttributeValue("class", "datelist").first().select("tr");
         for (int i = 0; i < trs.size(); i++) {
             Elements tds = trs.get(i).select("td");
             list = new ArrayList<String>();
@@ -141,10 +126,12 @@ public class Main_Activity extends AppCompatActivity {
             LogUtil.m(mlistmore.get(i).toString());
         }
 
-        LogUtil.m("总计"+mlistmore.size());
+        LogUtil.m("总计" + mlistmore.size());
 
 
     }
+
+
     private Handler handler = new Handler() {
 
         @Override
