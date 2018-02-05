@@ -65,6 +65,7 @@ public class LoginActivity extends AppCompatActivity {
                         try {
                             String result = netManager.loginByPost(ed_yzm.getText().toString().trim(), "1317170132", "renyahui.");
                             netManager.getLogionSuccessValue();
+
                             if (result != null) {
                                 progressDialog.dismiss();
 
