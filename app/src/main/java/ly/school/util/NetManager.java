@@ -48,6 +48,7 @@ public class NetManager {
 
     /**
      * 1 获取验证码以及cookie
+     *
      * @param context
      * @param imageView
      * @param view
@@ -116,9 +117,10 @@ public class NetManager {
 
     /**
      * 3 登录教务系统
+     *
      * @param yzm 验证码
      * @param zh  账号
-     * @param mm 密码
+     * @param mm  密码
      * @return
      */
     public String loginByPost(String yzm, String zh, String mm) {
@@ -176,13 +178,11 @@ public class NetManager {
         // 提交数据到服务器
         // 拼装路径
         try {
-            URL url = new URL(SchoolApi.SCHOOL_URL+"xscj_gc.aspx?xh=" + zh_id + "&xm=" + name + "&gnmkdm=N121605");
+            URL url = new URL(SchoolApi.SCHOOL_URL + "xscj_gc.aspx?xh=" + zh_id + "&xm=" + name + "&gnmkdm=N121605");
             //利用HttpURLConnection对象从网络中获取网页数据
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             //设置连接超时
             conn.setConnectTimeout(5000);
-            //设置cookie
-            conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
             //设置提交方式
             conn.setRequestMethod("GET");
             //协议头
@@ -191,8 +191,8 @@ public class NetManager {
             conn.setRequestProperty("Accept", "text/html, application/xhtml+xml, */*");
             conn.setRequestProperty("Connection", "Keep-Alive");
             conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
-            conn.setRequestProperty("Host", "222.222.32.17");
-            conn.setRequestProperty("Referer", "http://222.222.32.17/xs_main.aspx?xh=" + zh_id);
+            conn.setRequestProperty("Host", "222.222.32.17:81");
+            conn.setRequestProperty("Referer", SchoolApi.SCHOOL_URL + "xs_main.aspx?xh=" + zh_id);
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
 
             int code = conn.getResponseCode();
@@ -200,8 +200,8 @@ public class NetManager {
                 // 请求成功
                 InputStream is = conn.getInputStream();
                 String text = StreamTools.readInputStream(is);
-                loginSuccessfulState= LoginSuccessfulXml(text);
-                LogUtil.m("获取成功成功的STATE值"+loginSuccessfulState);
+                loginSuccessfulState = LoginSuccessfulXml(text);
+                LogUtil.m("获取成功成功的STATE值" + loginSuccessfulState);
 
 
             }
@@ -215,19 +215,19 @@ public class NetManager {
 
     /**
      * 5 查询学生成绩
+     *
      * @return
      */
     public String postResult() {
         // 提交数据到服务器
         // 拼装路径
         try {
-            URL url = new URL(SchoolApi.SCHOOL_URL+"xscj_gc.aspx?xh=" + zh_id + "&xm=" + name + "&gnmkdm=N121605");
+            URL url = new URL(SchoolApi.SCHOOL_URL + "xscj_gc.aspx?xh=" + zh_id + "&xm=" + name + "&gnmkdm=N121605");
             //利用HttpURLConnection对象从网络中获取网页数据
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             //设置连接超时
             conn.setConnectTimeout(5000);
-            //设置cookie
-            conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
+
             //设置提交方式
             conn.setRequestMethod("POST");
             // 准备数据
@@ -240,7 +240,7 @@ public class NetManager {
             conn.setRequestProperty("Connection", "Keep-Alive");
             conn.setRequestProperty("Cookie", "ASP.NET_SessionId=" + cookie.value());
             conn.setRequestProperty("Content-Length", datas.length() + "");
-            conn.setRequestProperty("Referer", "http://222.222.32.17/xscj_gc.aspx?xh=" + zh_id + "&xm=" + name + "&gnmkdm=N121605");
+            conn.setRequestProperty("Referer", SchoolApi.SCHOOL_URL + "xscj_gc.aspx?xh=" + zh_id + "&xm=" + name + "&gnmkdm=N121605");
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
             // post实际上是浏览器把数据写给了服务器
             conn.setDoOutput(true);//UrlConnection允许向外传数据
@@ -274,13 +274,23 @@ public class NetManager {
         String trs = doc.select("input[name=__VIEWSTATE]").val();
         return trs;
     }
+
     /**
-     *  获取登录成功的ViewSTATE参数
+     * 获取登录成功的ViewSTATE参数
+     *
      * @param html
      * @return
      */
     private String LoginSuccessfulXml(String html) {
         String loginSuccessXml = jsoupIndexXml(html);
+        Document doc = Jsoup.parse(html);
+        String xuehao = doc.select("p.search_con").select("span").select("[id=Label3]").text();
+        String xingming = doc.select("p.search_con").select("span").select("[id=Label5]").text();
+        String yuanxi = doc.select("p.search_con").select("span").select("[id=Label6]").text();//学院：制药工程系
+        String zhuanye = doc.select("p.search_con").select("span").select("[id=Label9]").text(); //专业
+        String zhuanyeContext = doc.select("p.search_con").select("span").select("[id=Label7]").text(); //药品生产技术（化学制药方向）
+        String xingzheng = doc.select("p.search_con").select("span").select("[id=Label8]").text(); //行政班级
+        LogUtil.e("获取" + xuehao+" "+xingming+""+yuanxi+""+zhuanye+""+zhuanyeContext+""+xingzheng);
         return loginSuccessXml;
     }
 
@@ -302,7 +312,6 @@ public class NetManager {
 
         return myString;
     }
-
 
 
 }

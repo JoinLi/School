@@ -89,7 +89,7 @@ public class Main_Activity extends AppCompatActivity {
                     NetManager netManager = NetManager.getNetManager(); //单例模式拿数据
                     String result = netManager.postResult();
                     if (result != null) {
-
+                      LogUtil.d("成绩"+result);
                         int str_start = result.indexOf("divShow1");
                         String result1 = result.substring(str_start);
                         int str_end = result1.indexOf("table width");
