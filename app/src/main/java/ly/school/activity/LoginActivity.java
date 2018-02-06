@@ -1,7 +1,11 @@
 package ly.school.activity;
 
-import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -28,7 +32,8 @@ public class LoginActivity extends AppCompatActivity {
     private EditText mPasswordView, ed_yzm;
     private ImageView im_yzm;
     private NetManager netManager;
-    private Dialog progressDialog;
+    private ProgressDialog dialog;
+    private TextView byAuthor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,39 +49,49 @@ public class LoginActivity extends AppCompatActivity {
     private void initView() {
         netManager = NetManager.getNetManager(); //单例模式拿数据
         im_yzm = (ImageView) findViewById(R.id.im_yzm);
+        byAuthor = (TextView) findViewById(R.id.byAuthor);
         mTextid = (AutoCompleteTextView) findViewById(R.id.text_id);
         ed_yzm = (EditText) findViewById(R.id.ed_yzm);
         mPasswordView = (EditText) findViewById(R.id.password);
+        dialog = new ProgressDialog(LoginActivity.this);
+        dialog.setMessage("正在登录...");
         im_yzm.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 netManager.getCode(LoginActivity.this, im_yzm, getCurrentFocus());
             }
         });
+        byAuthor.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(getCurrentFocus(), "若遇到问题，联系QQ：986483793", Snackbar.LENGTH_LONG).show();
+            }
+        });
         Button button = (Button) findViewById(R.id.login_button);
         button.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-//                attemptLogin();
-                dialogShow();
+                dialog.show();
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            String result = netManager.loginByPost(ed_yzm.getText().toString().trim(), "1317170132", "renyahui.");
+                            String result = netManager.loginByPost(ed_yzm.getText().toString().trim(),
+                                    mTextid.getText().toString().trim(),
+                                    mPasswordView.getText().toString().trim());
                             netManager.getLogionSuccessValue();
 
                             if (result != null) {
-                                progressDialog.dismiss();
+                                dialog.dismiss();
 
                             }
                             LogUtil.LogShitou(result);
-                            Intent intent = new Intent(LoginActivity.this, Main_Activity.class);
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
 //                                intent.putExtra("result", myString);
                             startActivity(intent);
 
                         } catch (Exception e) {
-                            progressDialog.dismiss();
+                            dialog.dismiss();
                             Snackbar.make(getCurrentFocus(), "登录失败", Snackbar.LENGTH_LONG).show();
                             netManager.getCode(LoginActivity.this, im_yzm, getCurrentFocus());
                             LogUtil.m("登录出错");
@@ -97,21 +112,22 @@ public class LoginActivity extends AppCompatActivity {
                 return false;
             }
         });
-        
+
 
     }
 
-    private void dialogShow() {
-        progressDialog = new Dialog(LoginActivity.this, R.style.progress_dialog);
-        progressDialog.setContentView(R.layout.layout_dialog);
-        progressDialog.setCancelable(true);
-        progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        TextView msg = (TextView) progressDialog.findViewById(R.id.id_tv_loadingmsg);
-        msg.setText("正在加载中");
-        progressDialog.show();
+
+    public boolean checkApkExist(Context context, String packageName) {
+        if (packageName == null || "".equals(packageName))
+            return false;
+        try {
+            ApplicationInfo info = context.getPackageManager().getApplicationInfo(packageName,
+                    PackageManager.GET_UNINSTALLED_PACKAGES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
-
-
 
 }
 

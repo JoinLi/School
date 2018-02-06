@@ -1,6 +1,7 @@
 package ly.school.activity;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -10,9 +11,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -32,21 +30,20 @@ import ly.school.util.ToastUtil;
 /**
  * @author Administrator
  */
-public class Main_Activity extends AppCompatActivity {
+public class ResultActivity extends AppCompatActivity {
     private ResultAdapter mAdapter;
     private Toolbar toolbar;
     private RecyclerView mRecyclerView;
     private List<String> list;
     private Map<Integer, List<String>> mlistmore = new HashMap<Integer, List<String>>();
-    private Dialog progressDialog;
+    private ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
+        setContentView(R.layout.result_activity);
         initView();
-//        Snackbar.make(getCurrentFocus(), "登录成功", Snackbar.LENGTH_LONG).show();
-        ToastUtil.showToast(Main_Activity.this,"登录成功");
+        ToastUtil.showToast(ResultActivity.this, "正在查询...");
 
     }
 
@@ -61,6 +58,8 @@ public class Main_Activity extends AppCompatActivity {
             mActionBar.setHomeButtonEnabled(true);
             mActionBar.setDisplayHomeAsUpEnabled(true);
         }
+        dialog = new ProgressDialog(ResultActivity.this);
+        dialog.setMessage("正在查询...");
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         //创建默认的线性LayoutManager
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
@@ -70,18 +69,11 @@ public class Main_Activity extends AppCompatActivity {
         //创建并设置Adapter
         mAdapter = new ResultAdapter(mlistmore);
         mRecyclerView.setAdapter(mAdapter);
-
-        Button post_res_button = (Button) findViewById(R.id.post_res_button);
-        post_res_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                initData();
-            }
-        });
+        initData();
     }
 
     private void initData() {
-        dialogShow();
+        dialog.show();
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -89,7 +81,7 @@ public class Main_Activity extends AppCompatActivity {
                     NetManager netManager = NetManager.getNetManager(); //单例模式拿数据
                     String result = netManager.postResult();
                     if (result != null) {
-                      LogUtil.d("成绩"+result);
+                        LogUtil.d("成绩" + result);
                         int str_start = result.indexOf("divShow1");
                         String result1 = result.substring(str_start);
                         int str_end = result1.indexOf("table width");
@@ -101,17 +93,13 @@ public class Main_Activity extends AppCompatActivity {
                             myString = result1;
                         }
                         JsoupXml(myString);
-//
-//                                Intent intent = new Intent(LoginActivity.this, WebViewActivity.class);
-//                                intent.putExtra("result", myString);
-//                                startActivity(intent);
 
                     }
 
 
                 } catch (Exception e) {
                     LogUtil.m("获取成绩出错");
-                    progressDialog.dismiss();
+                    dialog.dismiss();
 //
                 }
             }
@@ -141,10 +129,11 @@ public class Main_Activity extends AppCompatActivity {
             LogUtil.m(mlistmore.get(i).toString());
         }
 
-        LogUtil.m("总计"+mlistmore.size());
+        LogUtil.m("总计" + mlistmore.size());
 
 
     }
+
     private Handler handler = new Handler() {
 
         @Override
@@ -152,7 +141,7 @@ public class Main_Activity extends AppCompatActivity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case 1:
-                    progressDialog.dismiss();
+                    dialog.dismiss();
                     mAdapter.notifyDataSetChanged();
                 default:
                     break;
@@ -169,13 +158,5 @@ public class Main_Activity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-    private void dialogShow() {
-        progressDialog = new Dialog(Main_Activity.this, R.style.progress_dialog);
-        progressDialog.setContentView(R.layout.layout_dialog);
-        progressDialog.setCancelable(true);
-        progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        TextView msg = (TextView) progressDialog.findViewById(R.id.id_tv_loadingmsg);
-        msg.setText("正在加载中");
-        progressDialog.show();
-    }
+
 }

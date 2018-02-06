@@ -25,6 +25,7 @@ import java.net.URLEncoder;
 import java.util.List;
 
 import ly.school.bean.SchoolApi;
+import ly.school.bean.SchoolBean;
 import okhttp3.Call;
 import okhttp3.Cookie;
 
@@ -34,6 +35,7 @@ public class NetManager {
     private String name, zh_id;
     private String viewstate;
     private static NetManager netManager = new NetManager();
+    public  SchoolBean bean;
 
     private NetManager() {
 
@@ -214,7 +216,6 @@ public class NetManager {
     }
 
 
-
     /**
      * 5 查询学生成绩
      *
@@ -289,10 +290,11 @@ public class NetManager {
         String xuehao = doc.select("p.search_con").select("span").select("[id=Label3]").text();
         String xingming = doc.select("p.search_con").select("span").select("[id=Label5]").text();
         String yuanxi = doc.select("p.search_con").select("span").select("[id=Label6]").text();//学院：制药工程系
-        String zhuanye = doc.select("p.search_con").select("span").select("[id=Label9]").text(); //专业
+//        String zhuanye = doc.select("p.search_con").select("span").select("[id=Label9]").text(); //专业
         String zhuanyeContext = doc.select("p.search_con").select("span").select("[id=Label7]").text(); //药品生产技术（化学制药方向）
         String xingzheng = doc.select("p.search_con").select("span").select("[id=Label8]").text(); //行政班级
-        LogUtil.e("获取" + xuehao+" "+xingming+""+yuanxi+""+zhuanye+""+zhuanyeContext+""+xingzheng);
+        bean = new SchoolBean(xingming, xuehao, yuanxi, zhuanyeContext, xingzheng);
+        LogUtil.e("获取" + xuehao + " " + xingming + "" + yuanxi + "" + "" + zhuanyeContext + "" + xingzheng);
         return loginSuccessXml;
     }
 

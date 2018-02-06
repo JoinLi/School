@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">教务系统</string>
+    <string name="app_name">掌上化药</string>
 
     <!-- Strings related to login -->
     <string name="prompt_id">学号</string>
@@ -14,4 +14,10 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+
+    <string name="text_name_left">姓名：</string>
+    <string name="text_xuehao_left">学号：</string>
+    <string name="text_banji_left">班级：</string>
+    <string name="text_zhuanye_left">专业：</string>
+    <string name="text_yuanxi_left">院系：</string>
 </resources>
